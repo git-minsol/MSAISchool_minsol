@@ -1,0 +1,218 @@
+ls -l : 숨김 파일 빼고 목록 보여주기
+디렉토리나 파일 이름이 변별력이 있는 상태면 이름 치다가 중간에 탭치면 알아서 완성됨
+
+touch 파일명 : 빈 txt파일 하나 만들기
+
+cd .. : 하위디렉토리 이동
+cd 디렉토리명/ : 내가 가고자하는 디렉토리로 이동
+ 
+from : 도커 이미지 생성 시 어느 이미지를 사용할것인지 베이스이미지 지정 명령
+ex) from ubuntu : ubuntu latest version을 베이스이미지로 지정
+
+nginx = 오픈소스 웹서버 이름, 현사용 웹서버 중 제일 가볍고 높은 성능의 웹서버
+컨테이너에 넣어 배포하기 가장 적당한 웹서버, nginx 이미지가 있음
+
+copy : 컨테이너 생성할 떄 특정 파일들의 경로나 디렉토리의 경로를 복사해서 담을 수 있는 명령
+
+run : 명시한 커맨드를 도커 컨테이너에서 실행하는 명령(도커 파일을 통해 도커 이미지를 만들 때 사용)
+도커 배포시 도커 환경을 설정해야함
+도커 이미지를 만들때 사용할 패키지들을 설치를 하면서 만들 수 있음
+pip install -r (requirement.txt) 옵션을 사용해 requirement.txt 파일에서 필요한 패키지들을 설치할 수있음
+
+cmd : 컨테이너를 실행 했을 떄 실행하는 명령, 컨테이너가 실행될 때 딱 한번 실행할수있다.
+
+workdir : 작업 디렉토리 지정 명령, 지정한 명령들이 저장이 되는 디렉토리, 생략 가능
+생략시 홈디렉토리에서 실행이 된다.
+
+env : 시스템 환경변수 지정 명령어, Key와 Value로 환경변수 세팅 가능.
+Language, 지역화 변수 등을 사용
+
+expose port/protocol : 도커는 기본적으로 외부로부터 격리당해있음,
+특정 도커를 외부와 통신하게끔 열어줘야할 때 사용하는 명령어
+프로토콜은 기본값으로 TCP가 지정
+
+vi Dockerfile : 도커파일을 vi에디터로 열기
+도커파일에 이미지생성명령 기록
+FROM ubuntu:18.04
+RUN apt-get update
+CMD ["echo","0502 Review-test"] : [명령어, 실행명령의 파라미터]
+
+docker build -t my-image:v1.0.0 . : 도커 이미지를 빌드, 
+도커 파일을 참조해서 이미지를 만들어라, 뒤에 .은 현재 도커시스템을 의미함
+-t : 태그 옵션
+
+
+이미지 활용?
+개인 pc에 도커가 설치되있는 상태에서 도커 이미지 빌드(my-image:v1.0.0)
+실행하며 컨테이너 생성 가능(demo1), 하나의 이미지로 여러개 컨테이너 생성 가능
+docker run --name demo1 my-image:v1.0.0
+
+1. 공유사용법, 이미지를 공유해서 같이 작업, 서버를 한대 만들어서 local docker registry 역할을 하게 함.
+도커 이미지를 저장하고 서버에서 도커 이미지를 다운받아 사용
+
+2. 클라우드 이용,  dockerhub에 도커 이미지를 업로드해서 다운받을 사람들은 다운받아 사용
+도커파일은 설계도면 느낌
+
+3. 클라우드 이용, Azure 이용, ACR(Azure Container Repository)에 이미지 업로드.
+저장공간=레포지토리, 저장하는 시스템=레지스트리
+AKS(쿠버네티스 서비스)에서 컨테이너를 여러개 만들어 운영가능
+
+공유사용법, 로컬 레지스트리 이미지푸쉬
+
+docker run -d -p 5000:5000(포트번호 지정, 들어가는 포트:나가는포트) --name registry registry :
+레지스트리 도커 이미지를 불러와서 레지스트리 컨테이너를 만드는 명령
+
+docker images | grep my-image(이미지명) : 내가 찾고자하는 이미지를 표시하고싶을때 사용
+
+(밑에 명령어 두개는 공여지책으로 사용하는 것(별로 사용안함), 서버가 죽으면 다 죽어버리기때문)
+docker tag my-image:v1.0.0(이미지:태그) localhost:5000/my-image:v1.0.0 : 이미지를 옮길 레지스트리 태그/지정
+docker push localhost(ip주소):5000(포트번호)/my-image:v1.0.0(푸쉬하고자 하는 이미지:태그(버전)) : 레지스트리에 이미지 푸쉬
+
+curl -X GET http://localhost:5000/v2/_catalog : 
+curl을 통해 유닉스/리눅스환경에서 통신을 쉽게하는 명령어, 내가 푸쉬한 이미지가 지정한 레지스트리에 저장이 되있는지 확인
+
+curl -X GET http://localhost:5000/v2/my-image/tags/list : 태그까지 목록 확인
+
+2. 클라우드 이용, 도커허브에 이미지 푸쉬
+
+docker login : 도커허브 로그인
+
+CLI(Command Line Interface) : 명령어로 사용할 수 있는 도구
+docker tag my-image:v1.0.0 soldocminker/my-image:v1.0.0 
+docker push soldocminker/my-image:v1.0.0
+
+쿠버네티스 : 구글이 만듬, GPL 라이센스
+웹킷이라는 오픈소스가 있었는데 이 걸 가지고 크로미아라는 오픈소스 프로젝트를 통해
+크롬도 만들고, 엣지도 만들고
+Container Orchestration Tools : 여러 컨테이너를 관리하는 툴
+GA(Generation Available) : 오픈 기회가 붙은 버전?
+
+kubernetes 배포판 minikube 
+
+Worker Node = PC(Virtual Machine or Server)
+Master가 Worker Node를 관리하는 역할
+노드들을 탐색해서 놀고있는 자원을 찾아서 컨테이너 수를 관리
+API Server를 호출하는 UI, CLI
+pod = container를 담는 그릇 , kubernetis에서 컨테이너(도커)를 실행하는 단위
+워커 노드가 컨테이너들을 직접 체크, 응답이 없으면 죽인다.
+kube-proxy를 통해 외부하고 통신한다.
+쿠버네티스 자체도 컨테이너로 되어있음
+도커를 관리하는 컨테이너 = 레지스트리
+
+curl -LO https://storage.googleapis.com/minikube/releases/v1.22.0/minikube-linux-amd64 : 미니쿠베 다운
+sudo install minikube-linux-amd64 /usr/local/bin/minikube : 이 위치에 다운받은 미니쿠베 설치
+curl -LO https://dl.k8s.io/release/v1.22.1/bin/linux/amd64/kubectl : CTL 다운
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl : 이 위치에 다운받은 CTL 설치
+
+minikube start --driver=docker : 미니쿠베를 도커를 통해 실행하겠다.
+
+minikube status : 현재 미니쿠베의 상태 확인
+
+kubectl get pod : kubectl CLI에 pod 정보를 보고싶다.
+
+kubectl get pod -n kube-system : 시스템이 사용하고 있는 pod 정보들을 볼수있다.
+-n :종류들을 찾겠다.
+
+minikube delete : 메모리에 있는 쿠버네티스만 삭제
+
+쿠버네티스에서 마스터에 명령을 전달하면 노드를 생성하고 컨테이너를 올려서 관리한다.
+컨테이너 실행 가장 작은 단위 pod
+
+YAML : 단순, 가독성 킹
+- 데이터 직렬화 : 스펙을 정리해서 포맷으로 변환하는 작업,
+메모리상의 객체를 네트워크로 보내기 위해서 Class, Property와 같은 상세정보를 길게풀어 텍스트로 변환하는 과정
+데이터 직렬화 후 다른 시스템에서 받아 객체 형식으로 복원 가능.
+
+APIversion : v1.0,
+kind : class,
+metadata : ,
+name : example,
+spec : Method : Run, View, Save
+        Property : Name : -, Color : - .....
+
+문법
+- Key와 Value의 조합
+- 주석은 # ( 작성해놔야 기억, 이해 가능)
+
+자료형
+string : ""로 감싸주기
+(숫자를 문자열로 지정하고싶은경우, y, yes, true 등의 예약어와 겹치는 경우, 특수문자를 포함한 경우)
+
+list : -를 사용해 한 줄 씩, [] 안에 여러개, list의 원소는 어떤 자료형이든 가능
+ex) examples:
+        - ex_one: 1
+        - ex_two: 2
+    examples: ["1", "2", "3"]
+
+Multi-line strings : |, >
+
+Multi-document yaml : "---" 구분선을 통해 하나의 파일에 여러 yaml document 작성 가능
+
+
+vi 에디터 사용할때 대소문자, 들여쓰기 주의
+하위항목은 들여쓰기하기
+- pod.yaml -
+apiVersion: v1
+kind: Pod
+metadata:
+  name: counter
+spec:
+  containers:
+  - name: count
+    image: busybox (busybox 라는 도커 이미지 이용)
+    args: [/bin/sh, -c, 'i=0; while true; do echo "$i: $(date)"; i=$((i+1)); sleep 1; done']
+
+kubectl apply -f pod.yaml : pod.yaml 파일을 실행
+kubectl get pod -n kube-system : 시스템에서 실행되고 있는 pod들의 정보 확인
+kubectl get pod -A : 전체 pod들의 정보 확인
+kubectl get pod pod명 : 내가 적은 pod명의 pod의 정보만 확인
+kubectl describe pod pod명 : 내가 적은 pod에 대한 상세한 정보 확인
+kubectl get pod -o wide : get pod에서 조금 더 자세한 정보 확인
+kubectl get pod -w : 지속적으로 각각의 pod의 상태를 확인
+kubectl logs counter : pod의 로그 확인
+
+pod 접속
+kubectl exec -it counter /bin/sh : 대화형터미널로 카운터 컨테이너에 쉘쪽으로 접속
+
+
+pod 삭제
+kubectl delete pod counter(pod명) : pod 삭제
+kubectl delete -f pod.yaml : yaml 파일을 참조하여 만든 객체 삭제(yaml 파일은 삭제안됨)
+
+Deployment
+Pod와 Replicaset(복제)에 대한 관리를 제공하는 단위
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  labels:
+    app: nginx
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+container는 반복적으로 나올수 있기 때문에 앞에 대쉬를 붙인다.
+
+Scaling
+kubectl scale deployment/nginx-deployment --replicas=20 : 20개의 pod 복제 만들기
+다시 숫자를 줄여서 치면 줄인 수만큼 줄어든다.
+Deployment Auto-Healing : 
+replica된 특정 pod를 삭제해도 replica 지정해준 수만큼의 pod이 유지되도록 다시 생성된다.
+
+
+Service
+쿠버네티스에서 배포한 Pod을 외부에서 접근하기 쉽게 추상화한 리소스.
+pod에 ip가 전부 다 할당되어있음. 다이렉트 접속은 시스템 동작 원리를 전혀 알수없음
+같은 역할을 하는 pod들이 있으면 그걸 추상화하는 개념이 있어야 하는데 그게 서비스임.
+
