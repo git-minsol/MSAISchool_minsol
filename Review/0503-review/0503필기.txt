@@ -1,0 +1,84 @@
+네트워크
+2의8승=256, 0~255, ipv4의 한자리는 8비트, 총 32비트=ipv4
+사용 ip개수가 부족해서 해결방법
+2자리를 더해서 48비트 주소 체계 이용 ipv6
+게이트웨이로 실제로 들어오는 ip주소는 public ip
+사설망에서 사용하는 ip주소는 private ip
+
+도커는 기본적으로 공용 ip, 도커 안의 컨테이너들은 사설 ip
+
+- docker-compose.yaml -
+version: '3'
+services:
+  azure-vote-back:
+    image: mcr.microsoft.com/oss/bitnami/redis:6.0.8
+    container_name: azure-vote-back
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+        - "6379:6379"
+
+  azure-vote-front:
+    build: ./azure-vote
+    image: mcr.microsoft.com/azuredocs/azure-vote-front:v1
+    container_name: azure-vote-front
+    environment:
+      REDIS: azure-vote-back
+    ports:
+        - "8080:80"
+
+apt-get = 우분투에서의 명령
+
+sudo apt-get install docker-compose
+docker-compose up -d : docker-compose.yaml 파일을 참조해서 이미지를 만들고 데몬 모드로 실행해라
+
+서버쪽에서 들어오는데이터 : 인바운드
+서버쪽으로 나가는데이터 : 아웃바운드
+아웃바운드 트래픽에 대해서만 비용을 받는다.
+인바운드에 포트접속허용을 해줘야 외부에서 접속가능
+포트 규칙 추가할 때 우선순위 거부 조건이 있을경우 거부당해서 못들어올수있음
+우선순위 숫자를 높게 설정했음(실습당시 인바운드 310, 아웃바운드 300)
+TCP : 데이터 전송시 잘됬는지 일일이 체크, 중간에 빠진게있으면 다시 요청해서 다 받음
+끝까지 추적해 데이터를 다 받아낸다
+(일반적 DB통신, 웹통신)
+UDP : 상대방이 받던 말던 계속 보냄, 확인과정이 없어 속도는 빠르지만, 중간에 데이터손실 가능성이있음
+(스트리밍(음악, 영상))
+
+파이프라인 : 출력이 다른곳으로 연결되는 파이프
+키보드로 입력하는 내용,
+리눅스/유닉스 환경에서는 터미널도 하나의 파일로 인식
+터미널로 접속 했을 경우 파일에서 나온 출력이 시스템으로 들어간다.
+파이프가 스크린에 연결되어있어 키보드로 칠 떄마다 스크린에 연결되어있어 표시가되는것
+ex) TTY01 | Scr : 키보드로 친 내용이 파이프를 통해 스크린에 표시된다.
+파이프 방향 표시도 가능
+ex) TTY | Print : 프린트에 파이프 지정시 프린트로 바로 출력가능
+
+az group list --output table > a.txt : 그룹목록을 테이블형태로 출력한 내용을 a.txt파일로 저장해라
+az acr create --resource-group RG112 --name labuser112acr --sku Basic : --sku는 용량? 이런 스펙 지정하는 옵션
+az acr login --name labuser112acr
+
+Azure Active Directory 기술을 기반으로 보안성이 확보됨
+펜타곤에서 쓰기 위해 보안성을 높여야하는데
+보안성의 기준이 살인적으로 높아서 편의성이 떨어짐
+Active Directory 기술 기반 보안
+ex) 서버 작업을 위해 공유, 보안을 위해 ID, PW 지정
+사업 확장이 되며, 물리적 서버도 확장되면 확장서버도 ID, PW 지정해줘야함
+
+Directory라는 개념을 만들어 서버들이 하나로 묶음
+모든 컴퓨터가 Directory에 붙어있고, 사용자의 보안정보는 단일서버가 아닌 Directory에 묶여있어
+하나를 변경하면 Directory에 붙어있는 모든 컴퓨터가 변경되는 개념
+그래서 Directory에서 인증을 먼저 받아야 그 안에 있는 접속하고자하는 서버에 접속가능
+
+마소에서 만든 Active Directory(윈도우 기반 서버 사용시)
+클라우드 서비스를 시작하면서 회사 하나마다 하나의 Active Directory로 묶음
+회사끼리도 연결이 되어야 하기 때문에 클라우드 기반의 Azure Active Directory로 확장됨.
+ex) helloaicloud.onmicrosoft.com : (Directoryname=Tenant).onmicrosoft.com
+
+az acr list --resource-group RG112 --query "[].{acrLoginServer:loginServer}" --output table
+az acr repository list --name labuser112acr.azurecr.io --output table : 레포지토리 안에 무엇이있는지 리스트 확인
+az acr repository show-tags --name labuser112acr.azurecr.io --repository azure-vote-front --output table : 레포지토리에 태그되어있는 이미지의 버전 확인
+
+VMSS(Virtual Machine Scale Set) : VM의 부하가 일정수치 이상이 되면 자동으로 VM이 추가가 되게끔 설정되는 시스템
+
+DevOps : 계획짜기 -> 설계 -> 코딩 -> 패키지,라이브러리들로 빌드 -> 테스트 -> 릴리즈(버전을 붙이는 작업) -> 서버에 배포(deploy) -> 운영(operate) -> 모니터링->
+	계획짜기(무한반복)
