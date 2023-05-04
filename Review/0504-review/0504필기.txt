@@ -1,0 +1,73 @@
+0504Review
+
+Azure Machine Learning Service
+Azure Portal 에서 사용하는 것이 아니라 별도 Portal이 있음.
+
+Training을 위한 가상머신은 Compute(=자원) 탭에 있음.
+
+Machine Learning
+Data source -> Law Data ->Metadata control, [Preprocessing]Transformer(Input/Output)
+-> Features -> Training Set/Test Set ->(Training Set) input Algorithm, Hyperparameters -> Train Model
+(Test Set) Test Train Model(여기까지 과정을 자동으로 해주는 것이 Automated ML)
+-> Model Save(Repository) -> Api Deploy
+
+Training Set을 알고리즘에 돌려서 모델로 변환, 여러 알고리즘을 돌려보며 가장 좋은 결과가 나오는 알고리즘을
+모델로 반환하는 것을 자동으로 클라우드에서 진행
+파라미터를 여러가지로 바꿔가면서 돌려본 후 최종 평가를 알아서 하고 평가지표들을 보여준다.
+
+모델 테스트 결과 정확도가 높고 Duration이 짧은 모델이 좀더 가벼운 모델이다.(같은 정확도라면 Duration이 짧은 모델 선택)
+
+HPC(High Performance Computing) -> Cloud로 넘어감
+
+# Azure 전체를 다루기 위한 Python package
+# 작업공간(=workspace) 안에서 실험, 데이터, 모델 저장이 이루어짐
+# workspace에 대한 정보를 가져오기 위한 명령
+from azureml.core import workspace
+
+# workspace의 현재 설정상태 확인
+Workspace.from_config()
+(name, location, subscription_id, resource_group)
+
+# 실험공간 준비(새로운 실험 만들기 위한 모듈 준비)
+from azureml.core import Experiment
+experiment = Experiment(workspace=ws, name='diabetes-exp-review')
+# 실험공간 지정, 실험이름 지정
+
+# Workspace 안에 실험공간을 만들어놓고 그 안에서 실험을 하는 개념으로 이해
+# 계층적 구조
+# 실험 데이터 준비
+
+# 데이터셋을 표형태로 확인(판다스 데이터프레임 형태로 확인)
+Diabetes.get_tabular_dataset().to_pandas_dataframe()
+
+# 빈칸이나 null값이 있는 행을 지우기
+dropna()
+
+# 데이터프레임에서 'Y' 값들만 뽑아내기 
+y_df = x_df.pop('Y')
+
+# 모델 훈련, 로그, 모델 파일 관리
+from sklearn.linear_model import Ridge
+# sklearn의 linear_model의 Ridge 모델 
+# Ridge 모델은 파라미터 중 알파값이 있는데 알파값을 변경해가며 훈련.
+
+from sklearn.metrics import mean_squared_error # 평가지표는 MSE를 표시
+from sklearn.externals import joblib # sklearn으로 학습시킨 모델을 pkl 파일로 저장할 수있게 하는 모듈
+
+alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+# alphas = np.linspace(0.1, 1.0, 10):
+# alphas = list(map(lambda x: x/10, range(1,11))
+# map(Function, Iterable, ....)
+
+# 실험에 대한 기록(로깅) 시작
+experiment.start_logging()
+
+# 실험 로그 끝
+.complete()
+
+# 모델 파일 저장
+model_name = 'model_alpha_review_' + str(alpha) + '.pkl'
+filename = 'outputs/' + model_name
+
+# 저장한 모델 파일을 Azure ML Service 에 업로드
+run.upload_file(name=model_name, path_or_stream=filename)
